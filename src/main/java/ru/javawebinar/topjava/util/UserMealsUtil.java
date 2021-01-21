@@ -23,10 +23,10 @@ public class UserMealsUtil {
                 new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 31, 20, 0), "Ужин", 410)
         );
 
-//        List<UserMealWithExcess> mealsTo = filteredByCycles(meals, LocalTime.of(7, 0), LocalTime.of(12, 0), 2000);
-//        mealsTo.forEach(System.out::println);
+        List<UserMealWithExcess> mealsTo = filteredByCycles(meals, LocalTime.of(7, 0), LocalTime.of(12, 0), 2000);
+        mealsTo.forEach(System.out::println);
 
-        System.out.println(filteredByStreams(meals, LocalTime.of(7, 0), LocalTime.of(12, 0), 2000));
+//        System.out.println(filteredByStreams(meals, LocalTime.of(7, 0), LocalTime.of(12, 0), 2000));
     }
 
     public static List<UserMealWithExcess> filteredByCycles(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
@@ -35,22 +35,21 @@ public class UserMealsUtil {
         Map<LocalDate, Integer> calories = new HashMap<>();
         List<UserMeal> selectedMeals = new ArrayList<>();
 
-        for (UserMeal meal : meals) {
-            LocalDate d = meal.getDateTime().toLocalDate();
-            int c = meal.getCalories() + calories.getOrDefault(d, 0);
+        meals.forEach(userMeal -> {
+            LocalDate d = userMeal.getDateTime().toLocalDate();
+            int c = userMeal.getCalories() + calories.getOrDefault(d, 0);
             calories.put(d, c);
-
-            if (TimeUtil.isBetweenHalfOpen(meal.getDateTime().toLocalTime(), startTime, endTime)) {
-                selectedMeals.add(meal);
-            }
-        }
+            if (TimeUtil.isBetweenHalfOpen(userMeal.getDateTime().toLocalTime(), startTime, endTime))
+                selectedMeals.add(userMeal);
+        });
 
         List<UserMealWithExcess> mealsWithExcess = new ArrayList<>();
-        for (UserMeal meal : selectedMeals) {
+
+        selectedMeals.forEach(meal -> {
             LocalDate d = meal.getDateTime().toLocalDate();
             boolean excess = calories.get(d) > caloriesPerDay;
             mealsWithExcess.add(new UserMealWithExcess(meal, excess));
-        }
+        });
         return mealsWithExcess;
     }
 
