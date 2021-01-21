@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Month;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 
@@ -23,10 +24,10 @@ public class UserMealsUtil {
                 new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 31, 20, 0), "Ужин", 410)
         );
 
-        List<UserMealWithExcess> mealsTo = filteredByCycles(meals, LocalTime.of(7, 0), LocalTime.of(12, 0), 2000);
-        mealsTo.forEach(System.out::println);
+//        List<UserMealWithExcess> mealsTo = filteredByCycles(meals, LocalTime.of(7, 0), LocalTime.of(12, 0), 2000);
+//        mealsTo.forEach(System.out::println);
 
-//        System.out.println(filteredByStreams(meals, LocalTime.of(7, 0), LocalTime.of(12, 0), 2000));
+//        System.out.println(filteredByStreams2(meals, LocalTime.of(7, 0), LocalTime.of(12, 0), 2000));
     }
 
     public static List<UserMealWithExcess> filteredByCycles(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
@@ -65,6 +66,26 @@ public class UserMealsUtil {
                 .stream()
                 .collect(Collectors.groupingBy(m -> m.getDateTime().toLocalDate(),
                         Collectors.reducing(0, UserMeal::getCalories, Integer::sum)));
+
+        return selectedMeals
+                .stream()
+                .map(m -> new UserMealWithExcess(m, calories.get(m.getDateTime().toLocalDate()) > caloriesPerDay))
+                .collect(Collectors.toList());
+    }
+
+    public static List<UserMealWithExcess> filteredByStreams2(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
+        //Implement by streams
+
+        Map<LocalDate, Integer> calories = new HashMap<>();
+        List<UserMeal> selectedMeals = meals
+                .stream()
+                .peek(userMeal -> {
+                    LocalDate d = userMeal.getDateTime().toLocalDate();
+                    int c = userMeal.getCalories() + calories.getOrDefault(d, 0);
+                    calories.put(d, c);
+                })
+                .filter(m -> TimeUtil.isBetweenHalfOpen(m.getDateTime().toLocalTime(), startTime, endTime))
+                .collect(Collectors.toList());
 
         return selectedMeals
                 .stream()
